@@ -1,0 +1,27 @@
+---
+- name: checking if Stash is already installed and running
+  service: name=atlstash state=started
+  register: service
+  ignore_errors: yes
+
+- name: Installing Git
+  action: "{{ ansible_pkg_mgr }} name=git state=latest update_cache=yes"
+  when: service|failed
+
+- name: Download Stash installer into /tmp
+  get_url: url="http://www.atlassian.com/software/stash/downloads/binary/atlassian-stash-3.5.0-x64.bin" dest=/tmp/stash.bin mode=0775
+  when: service|failed
+
+- name: Copying the response file
+  template: src=installer_config_opts dest=/tmp/
+  when: service|failed
+
+- name: Installing Atlassian Stash
+  shell: /tmp/stash.bin -q -varfile /tmp/installer_config_opts
+  when: service|failed
+
+- name: Preparing Stash to be running behind NGINX
+  template: src=server.xml.j2 dest=/opt/atlassian/stash/3.5.0/conf/server.xml mode=0644
+  notify: restart stash
+  register: proxying
+  when: service|failed

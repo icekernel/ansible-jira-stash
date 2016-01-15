@@ -1,0 +1,19 @@
+---
+- name: Install nginx
+  apt: name=nginx state=present
+
+- name: Copy nginx configuration for jira.icekernel.com
+  template: src=jira.icekernel.com dest=/etc/nginx/sites-available/jira.icekernel.com mode=0755
+
+- name: Create symlink
+  file: src=/etc/nginx/sites-available/jira.icekernel.com dest=/etc/nginx/sites-enabled/jira.icekernel.com state=link
+
+- name: Copy nginx configuration for stash.icekernel.com
+  template: src=stash.icekernel.com dest=/etc/nginx/sites-available/stash.icekernel.com mode=0755
+
+- name: Create symlink
+  file: src=/etc/nginx/sites-available/stash.icekernel.com dest=/etc/nginx/sites-enabled/stash.icekernel.com state=link
+
+- name: disable default nginx conf
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  notify: restart nginx
